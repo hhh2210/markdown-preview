@@ -384,3 +384,12 @@
 
 /* Table fullscreen control. */
 "Expand Table" = "展开表格";
+
+/* Save conflict comparison */
+"Disk Version" = "磁盘版本";
+"Your Unsaved Draft" = "你的未保存草稿";
+"Previous Change" = "上一处改动";
+"Next Change" = "下一处改动";
+"This document changed again on disk" = "磁盘上的文档再次发生了变化";
+"Compare both versions of %@. Keep My Changes overwrites the disk version. Reload from Disk discards your draft. Cancel keeps your changes unsaved." = "比较 %@ 的两个版本。“保留我的修改”会覆盖磁盘版本；“从磁盘重新加载”会放弃草稿；“取消”会保留未保存的修改。";
+"The comparison could not be displayed. Cancel to return to your unsaved draft." = "无法显示差异。请取消以返回未保存的草稿。";

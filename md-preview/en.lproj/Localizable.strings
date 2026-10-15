@@ -384,3 +384,12 @@
 
 /* Table fullscreen control. */
 "Expand Table" = "Expand Table";
+
+/* Save conflict comparison */
+"Disk Version" = "Disk Version";
+"Your Unsaved Draft" = "Your Unsaved Draft";
+"Previous Change" = "Previous Change";
+"Next Change" = "Next Change";
+"This document changed again on disk" = "This document changed again on disk";
+"Compare both versions of %@. Keep My Changes overwrites the disk version. Reload from Disk discards your draft. Cancel keeps your changes unsaved." = "Compare both versions of %@. Keep My Changes overwrites the disk version. Reload from Disk discards your draft. Cancel keeps your changes unsaved.";
+"The comparison could not be displayed. Cancel to return to your unsaved draft." = "The comparison could not be displayed. Cancel to return to your unsaved draft.";
