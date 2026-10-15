@@ -6,13 +6,13 @@ enum SaveConflictSheet {
                      fileName: String, changedAgain: Bool) -> NSAlert {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = changedAgain
-            ? NSLocalizedString("This document changed again on disk", comment: "Refreshed conflict title")
-            : NSLocalizedString("This document changed on disk", comment: "External edit conflict alert title")
-        alert.informativeText = String(format: NSLocalizedString(
-            "Compare both versions of %@. Keep My Changes overwrites the disk version. Reload from Disk discards your draft. Cancel keeps your changes unsaved.",
-            comment: "Save conflict explanation"), fileName)
-        alert.addButton(withTitle: NSLocalizedString("Keep My Changes", comment: "Conflict alert button"))
+        alert.messageText = String(format: changedAgain
+            ? NSLocalizedString("“%@” changed again on disk", comment: "Refreshed conflict title")
+            : NSLocalizedString("“%@” changed on disk", comment: "External edit conflict alert title"), fileName)
+        alert.informativeText = NSLocalizedString(
+            "Overwriting replaces the file on disk. Reloading discards your draft. Cancel keeps your changes unsaved.",
+            comment: "Save conflict explanation")
+        alert.addButton(withTitle: NSLocalizedString("Overwrite Disk", comment: "Conflict alert button"))
         alert.addButton(withTitle: NSLocalizedString("Reload from Disk", comment: "Conflict alert button"))
         alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Alert button"))
         // Neither Return nor a not-yet-loaded comparison may discard a version.

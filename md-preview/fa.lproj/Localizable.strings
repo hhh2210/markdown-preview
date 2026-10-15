@@ -383,3 +383,24 @@
 
 /* Table fullscreen control. */
 "Expand Table" = "گسترش جدول";
+
+/* Save conflict comparison controls */
+"On Disk" = "روی دیسک";
+"Your Draft" = "پیش‌نویس شما";
+"Saved file" = "فایل ذخیره‌شده";
+"Unsaved" = "ذخیره‌نشده";
+"Differences" = "تفاوت‌ها";
+"%1$d of %2$d" = "%1$d از %2$d";
+"No text changes" = "متن بدون تغییر است";
+"Previous Change" = "تغییر قبلی";
+"Next Change" = "تغییر بعدی";
+"Show Whole File" = "نمایش کل فایل";
+"Hide Unchanged" = "جمع کردن بخش‌های بدون تغییر";
+"$ unchanged lines" = "$ خط بدون تغییر";
+"None" = "هیچ‌کدام";
+"Line endings differ. On disk: %1$@; draft: %2$@." = "پایان خط‌ها متفاوت است. روی دیسک: %1$@؛ پیش‌نویس: %2$@.";
+"“%@” changed on disk" = "«%@» روی دیسک تغییر کرده است";
+"“%@” changed again on disk" = "«%@» دوباره روی دیسک تغییر کرده است";
+"Overwriting replaces the file on disk. Reloading discards your draft. Cancel keeps your changes unsaved." = "بازنویسی، فایل روی دیسک را جایگزین می‌کند. بارگذاری مجدد، پیش‌نویس شما را کنار می‌گذارد. لغو، تغییرات ذخیره‌نشدهٔ شما را نگه می‌دارد.";
+"Overwrite Disk" = "بازنویسی فایل روی دیسک";
+"The comparison could not be displayed. Cancel to return to your unsaved draft." = "نمایش مقایسه ممکن نشد. برای بازگشت به پیش‌نویس ذخیره‌نشده، لغو کنید.";

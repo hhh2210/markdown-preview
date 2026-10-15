@@ -386,10 +386,24 @@
 "Expand Table" = "展开表格";
 
 /* Save conflict comparison */
-"Disk Version" = "磁盘版本";
-"Your Unsaved Draft" = "你的未保存草稿";
 "Previous Change" = "上一处改动";
 "Next Change" = "下一处改动";
-"This document changed again on disk" = "磁盘上的文档再次发生了变化";
-"Compare both versions of %@. Keep My Changes overwrites the disk version. Reload from Disk discards your draft. Cancel keeps your changes unsaved." = "比较 %@ 的两个版本。“保留我的修改”会覆盖磁盘版本；“从磁盘重新加载”会放弃草稿；“取消”会保留未保存的修改。";
 "The comparison could not be displayed. Cancel to return to your unsaved draft." = "无法显示差异。请取消以返回未保存的草稿。";
+
+/* Save conflict comparison controls */
+"On Disk" = "磁盘版本";
+"Your Draft" = "你的草稿";
+"Saved file" = "已保存的文件";
+"Unsaved" = "未保存";
+"Differences" = "差异";
+"%1$d of %2$d" = "第 %1$d / %2$d 处";
+"No text changes" = "文本内容相同";
+"Show Whole File" = "显示完整文件";
+"Hide Unchanged" = "折叠未变化内容";
+"$ unchanged lines" = "$ 行未变化内容";
+"None" = "无";
+"Line endings differ. On disk: %1$@; draft: %2$@." = "换行符不同。磁盘版本：%1$@；草稿：%2$@。";
+"“%@” changed on disk" = "磁盘上的“%@”已更改";
+"“%@” changed again on disk" = "磁盘上的“%@”再次更改";
+"Overwriting replaces the file on disk. Reloading discards your draft. Cancel keeps your changes unsaved." = "覆盖会替换磁盘上的文件；重新载入会放弃草稿；取消会保留未保存的更改。";
+"Overwrite Disk" = "覆盖磁盘版本";

@@ -81,7 +81,7 @@ final class Split {
     }
 }
 final class Controller {
-    enum DiskFileState { case unchanged, modified(String), missing, unreadable }
+    enum DiskFileState { case unchanged(String), modified(String), missing, unreadable }
     enum EditedMarkdownSaveResult { case saved, reloaded(String), cancelled }
     var mainSplit: Split? = Split()
     var isEditing: Bool { mainSplit?.isEditingDocument == true }
@@ -286,6 +286,24 @@ precondition(tryDisk(guarded) == afterPermission)
 precondition(SaveConflictSheet.snapshots.last!.disk == afterPermission)
 respond(.cancel)
 precondition(tryDisk(guarded) == afterPermission)
+
+// The same guard applies when the permission panel opened for an ordinary
+// save, before there was any external conflict to compare.
+let ordinary = try fixture("permission-before-conflict")
+try FileManager.default.setAttributes([.posixPermissions: 0o444], ofItemAtPath: ordinary.currentFileURL!.path)
+try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: directory.path)
+ordinary.toggleTaskCheckbox(onLine: 3, checked: true)
+try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directory.path)
+try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: ordinary.currentFileURL!.path)
+precondition(NSAlert.respond == nil)
+precondition(NSSavePanel.pending!.nameFieldStringValue == ordinary.currentFileURL!.lastPathComponent)
+try external.write(to: ordinary.currentFileURL!, atomically: true, encoding: .utf8)
+NSSavePanel.pending!.url = ordinary.currentFileURL
+NSSavePanel.respond!(.OK)
+precondition(tryDisk(ordinary) == external)
+precondition(SaveConflictSheet.snapshots.last!.disk == external)
+respond(.cancel)
+precondition(tryDisk(ordinary) == external)
 
 print("PASS: checkbox disk writes, draft preview and editor reentry for all conflict choices, rename during conflict, missing-file navigation, permission-panel navigation")
 print("PASS: compared snapshots, repeated external writes, preserved drafts, deleted files, identical changes and writes during permission prompts")

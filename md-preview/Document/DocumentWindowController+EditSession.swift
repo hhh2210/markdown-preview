@@ -470,7 +470,7 @@ extension DocumentWindowController {
         guard let url, let expectedMarkdown else { return .unreadable }
         do {
             let diskMarkdown = try String(contentsOf: url, encoding: .utf8)
-            return diskMarkdown == expectedMarkdown ? .unchanged : .modified(diskMarkdown)
+            return diskMarkdown == expectedMarkdown ? .unchanged(diskMarkdown) : .modified(diskMarkdown)
         } catch {
             return FileManager.default.fileExists(atPath: url.path) ? .unreadable : .missing
         }
@@ -490,8 +490,8 @@ extension DocumentWindowController {
             }
         }
         switch diskState {
-        case .unchanged:
-            persistEditedMarkdown(text, to: url, completion: completion)
+        case let .unchanged(snapshot):
+            persistEditedMarkdown(text, to: url, expectedMarkdown: snapshot, completion: completion)
         case let .modified(externalMarkdown):
             presentExternalEditConflict(localMarkdown: text,
                                         externalMarkdown: externalMarkdown,
