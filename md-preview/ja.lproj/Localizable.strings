@@ -388,6 +388,7 @@
 "Expand Table" = "表を拡大";
 
 /* Save conflict comparison controls */
+"Show Whole File" = "ファイル全体を表示";
 "On Disk" = "ディスク上";
 "Your Draft" = "自分の下書き";
 "Previous Change" = "前の変更";

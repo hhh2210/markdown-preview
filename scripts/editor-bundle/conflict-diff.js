@@ -51,6 +51,10 @@ window.MDConflictDiff = (disk, draft, labels) => {
     collapseUnchanged: { margin: 3, minSize: 8 },
   })
   let current = -1
+  // A native button and its keyboard equivalent expose all context in both panes.
+  window.MDConflictShowWholeFile = () => {
+    merge.reconfigure({ collapseUnchanged: undefined })
+  }
   // Returns the 1-based change shown, and the total, for the native counter.
   window.MDConflictNavigate = direction => {
     const total = merge.chunks.length

@@ -53,6 +53,7 @@ private final class ConflictComparisonView: NSView, WKNavigationDelegate {
     private let webView: WKWebView
     private let countLabel = NSTextField(labelWithString: "")
     private let navigationControl = NSSegmentedControl()
+    private let showWholeFileButton = NSButton()
 
     init(disk: String, draft: String) {
         let configuration = WKWebViewConfiguration()
@@ -65,6 +66,15 @@ private final class ConflictComparisonView: NSView, WKNavigationDelegate {
         countLabel.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         countLabel.textColor = .secondaryLabelColor
         configureNavigationControl()
+        showWholeFileButton.title = NSLocalizedString("Show Whole File", comment: "Expand all unchanged source in the save conflict comparison")
+        showWholeFileButton.bezelStyle = .rounded
+        showWholeFileButton.controlSize = .small
+        showWholeFileButton.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        showWholeFileButton.keyEquivalent = "e"
+        showWholeFileButton.keyEquivalentModifierMask = [.command, .shift]
+        showWholeFileButton.target = self
+        showWholeFileButton.action = #selector(showWholeFile(_:))
+        showWholeFileButton.isEnabled = false
 
         let diskHeader = NSStackView(views: [Self.columnLabel(
             NSLocalizedString("On Disk", comment: "Save conflict comparison heading"))])
@@ -73,6 +83,7 @@ private final class ConflictComparisonView: NSView, WKNavigationDelegate {
             NSLocalizedString("Your Draft", comment: "Save conflict comparison heading")), in: .leading)
         draftHeader.addView(countLabel, in: .trailing)
         draftHeader.addView(navigationControl, in: .trailing)
+        draftHeader.addView(showWholeFileButton, in: .trailing)
         // Line the headings up with the text in each pane below.
         for header in [diskHeader, draftHeader] {
             header.orientation = .horizontal
@@ -142,6 +153,13 @@ private final class ConflictComparisonView: NSView, WKNavigationDelegate {
         }
     }
 
+    @objc private func showWholeFile(_ sender: NSButton) {
+        sender.isEnabled = false
+        webView.evaluateJavaScript("MDConflictShowWholeFile()") { [weak sender] _, error in
+            if error != nil { sender?.isEnabled = true }
+        }
+    }
+
     /// A line-ending-only conflict has no text change to step through; the
     /// alert's message explains it instead.
     private func showPosition(_ result: Any?) {
@@ -160,7 +178,10 @@ private final class ConflictComparisonView: NSView, WKNavigationDelegate {
         webView.evaluateJavaScript("window.__conflictReady === true ? window.__conflictPosition : null") { [weak self] result, _ in
             guard let self else { return }
             let loaded = result is [Int]
-            if loaded { self.showPosition(result) }
+            if loaded {
+                self.showPosition(result)
+                self.showWholeFileButton.isEnabled = true
+            }
             self.finishedLoading?(loaded)
         }
     }

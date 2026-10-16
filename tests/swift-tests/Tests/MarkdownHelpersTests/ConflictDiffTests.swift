@@ -103,6 +103,33 @@ final class ConflictDiffTests: XCTestCase {
         XCTAssertEqual(values["expandedOne"] as? Bool, true)
     }
 
+    func testShowWholeFileRevealsBothSnapshotsWithoutChangingSelectionOrNavigation() async throws {
+        let disk = (0..<200).map { "Line \($0)" }.joined(separator: "\n")
+        let draft = disk.replacingOccurrences(of: "Line 50\n", with: "Edited 50\n")
+            .replacingOccurrences(of: "Line 150\n", with: "Edited 150\n")
+        let page = try await comparison(disk: disk, draft: draft)
+        defer { page.close() }
+        let result = try await page.webView.callAsyncJavaScript("""
+            const merge = window.__conflictDiff;
+            const collapsedBefore = document.querySelectorAll('.cm-collapsedLines').length;
+            merge.a.dispatch({selection: {anchor: 2, head: 5}});
+            MDConflictShowWholeFile();
+            MDConflictShowWholeFile();
+            for (let i = 0; i < 5; i++) window.__layoutTestFrame();
+            return {collapsedBefore, collapsedAfter: document.querySelectorAll('.cm-collapsedLines').length,
+                selection: [merge.a.state.selection.main.from, merge.a.state.selection.main.to],
+                disk: merge.a.state.doc.toString(), draft: merge.b.state.doc.toString(),
+                next: MDConflictNavigate(1)};
+            """, arguments: [:], in: nil, contentWorld: .page)
+        let values = try XCTUnwrap(result as? [String: Any])
+        XCTAssertGreaterThan(values["collapsedBefore"] as? Int ?? 0, 0)
+        XCTAssertEqual(values["collapsedAfter"] as? Int, 0)
+        XCTAssertEqual(values["selection"] as? [Int], [2, 5])
+        XCTAssertEqual(values["disk"] as? String, disk)
+        XCTAssertEqual(values["draft"] as? String, draft)
+        XCTAssertEqual(values["next"] as? [Int], [2, 2])
+    }
+
     func testLineEndingOnlyConflictIsExplained() async throws {
         let page = try await comparison(disk: "a\r\nb\r\n", draft: "a\nb\n")
         defer { page.close() }

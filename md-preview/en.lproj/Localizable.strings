@@ -393,6 +393,7 @@
 "The comparison could not be displayed. Cancel to return to your unsaved draft." = "The comparison could not be displayed. Cancel to return to your unsaved draft.";
 
 /* Save conflict comparison controls */
+"Show Whole File" = "Show Whole File";
 "On Disk" = "On Disk";
 "Your Draft" = "Your Draft";
 "$ unchanged lines" = "$ unchanged lines";

@@ -393,6 +393,7 @@
 "The comparison could not be displayed. Cancel to return to your unsaved draft." = "无法显示差异。请取消以返回未保存的草稿。";
 
 /* Save conflict comparison controls */
+"Show Whole File" = "显示完整文件";
 "On Disk" = "磁盘版本";
 "Your Draft" = "您的草稿";
 "$ unchanged lines" = "$ 行未变化内容";

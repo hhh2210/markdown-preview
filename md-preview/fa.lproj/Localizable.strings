@@ -387,6 +387,7 @@
 "Expand Table" = "گسترش جدول";
 
 /* Save conflict comparison controls */
+"Show Whole File" = "نمایش کل فایل";
 "On Disk" = "روی دیسک";
 "Your Draft" = "پیش‌نویس شما";
 "Previous Change" = "تغییر قبلی";
