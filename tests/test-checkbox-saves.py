@@ -74,6 +74,7 @@ final class Editor {
 final class Split {
     var isEditingDocument = false
     var editorViewController: Editor? = Editor()
+    var onLiveMetadataNeedsRefresh: (() -> Void)?
     func enterEditMode(markdown: String, assetBaseURL: URL?, autofocus: Bool) -> Editor {
         isEditingDocument = true
         editorViewController!.markdown = markdown
@@ -89,6 +90,10 @@ final class Controller {
     var editorBaselineMarkdown: String?
     var editorChangeRevision = 0
     var hasUnsavedEditorChanges = false
+    // Inspector refresh is outside the checkbox/save behavior under test.
+    var pendingInspectorComputation: DispatchWorkItem?
+    func invalidateInspectorRefresh() {}
+    func scheduleInspectorRefresh(from editor: Editor) {}
     func stopAutoSaveTimer() {}
     func startAutoSaveTimerIfNeeded() {}
     func updateFormattingSelection(heading: Int, commands: [String]) {}

@@ -19,7 +19,8 @@ nonisolated extension MarkdownHTML {
     static let stylesheet = baseStylesheet + "\n" + highlightThemeCSS + "\n" + tableControlsCSS
 
     static let tableControlsCSS = """
-    .md-table-wrap { position: relative; margin-top: \(largeBlockSpacing)px; padding-top: 28px; }
+    /* Shrink to the table so the Expand button sits at the table's edge, not the column's. */
+    .md-table-wrap { position: relative; margin-top: \(largeBlockSpacing)px; padding-top: 28px; width: fit-content; max-width: 100%; }
     .md-table-wrap > table { margin-top: 0; }
     .md-table-actions { display: flex; justify-content: flex-end; height: 28px; }
     .md-table-wrap > .md-table-actions { position: absolute; top: 0; inset-inline-end: 0; }
@@ -30,7 +31,7 @@ nonisolated extension MarkdownHTML {
     }
     .md-table-expand:hover { background: var(--code-bg); color: var(--text); }
     .md-table-expand:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-    th code, td code, .cm-md-table-cell .cm-md-inline-code { overflow-wrap: inherit; word-break: normal; }
+    th code, td code, .cm-md-table-cell .cm-md-inline-code { overflow-wrap: inherit; word-break: inherit; }
     html.\(previewPrintClass) .md-table-actions { display: none; }
     html.\(previewPrintClass) .md-table-wrap { padding-top: 0; }
     @media print {
@@ -38,6 +39,11 @@ nonisolated extension MarkdownHTML {
         .md-table-wrap { padding-top: 0; }
     }
     """
+
+    /// One gutter rule per `data-mdp-digits` value the formatter can emit.
+    private static let markerGutterRules = (3...EscapingHTMLFormatter.maximumMarkerDigits).map { digits in
+        "ol[data-mdp-digits=\"\(digits)\"] { --mdp-list-indent: calc(2.1em + \(digits - 2)ch); }"
+    }.joined(separator: "\n    ")
 
     private static let baseStylesheet = """
     :root {
@@ -670,10 +676,19 @@ nonisolated extension MarkdownHTML {
     .markdown-alert-caution .markdown-alert-title { color: #d1242f; }
 
     ul, ol {
+        /* Each list owns its gutter, so a nested list does not inherit the
+           wider gutter of a long ordered list around it. */
+        --mdp-list-indent: 2.1em;
         margin: \(paragraphSpacing)px 0 0;
         padding-inline-start: var(--mdp-list-indent);
         padding-inline-end: 0;
     }
+    /* A two-digit marker fits the default gutter; from "100." on, the
+       formatter tags the list with its digit count and the gutter grows by one
+       digit per extra digit. 1ch is the width of "0", which no document font
+       renders narrower than its tabular digits, so the marker never wraps or
+       hangs past the page edge. The editor mirrors this in entry-cm.js. */
+    \(markerGutterRules)
     ol > li::marker { color: var(--link); font-variant-numeric: tabular-nums; }
     /* No text marker: it would paint as a selected box beside every item.
        The gutter comes from the list padding, a 0.4em circle is painted in
@@ -749,6 +764,12 @@ nonisolated extension MarkdownHTML {
         text-align: start;
         vertical-align: top;
     }
+    /* Chinese and Japanese have no spaces, so a cell's min-content width is
+       otherwise one character and short labels wrap two or three characters
+       per line. keep-all keeps CJK runs whole; the renderer adds <wbr> after
+       CJK punctuation in Markdown cells so long text still wraps by phrase.
+       Latin text is unaffected. Raw HTML tables keep the default. */
+    :is(th, td)[data-table-row] { word-break: keep-all; }
     th { font-weight: 600; }
     :is(th, td)[align="center"] { text-align: center; }
     :is(th, td)[align="right"] { text-align: right; }

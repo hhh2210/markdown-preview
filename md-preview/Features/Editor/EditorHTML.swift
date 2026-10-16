@@ -361,7 +361,9 @@ nonisolated enum EditorHTML {
         }
         /* Ordered markers share the bullet's hanging box: right-aligned,
            tabular digits, accent color; the active source marker keeps the
-           same box so item text never moves. */
+           same box so item text never moves. From three digits on, entry-cm.js
+           widens the box and the line's hanging indent inline by 1ch per extra
+           digit, matching the preview's `ol[data-mdp-digits]` gutter. */
         .cm-md-ordered,
         .cm-md-ordered-source {
             display: inline-block;
@@ -606,9 +608,13 @@ nonisolated enum EditorHTML {
             outline: none;
             white-space: pre-wrap;
             overflow-wrap: normal;
-            word-break: normal;
+            /* Keep short CJK labels whole, like the reader. The rendered cell
+               carries <wbr> after CJK punctuation; the Markdown source shown
+               while editing does not, so it wraps normally. */
+            word-break: keep-all;
             cursor: text;
         }
+        .cm-md-table-cell[data-table-editing] { word-break: normal; }
         .cm-md-table-grid th .cm-md-table-cell[data-placeholder]:empty::before {
             content: attr(data-placeholder);
             color: var(--secondary);
