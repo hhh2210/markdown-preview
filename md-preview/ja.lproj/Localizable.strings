@@ -388,20 +388,10 @@
 /* Save conflict comparison controls */
 "On Disk" = "ディスク上";
 "Your Draft" = "自分の下書き";
-"Saved file" = "保存済みファイル";
-"Unsaved" = "未保存";
-"Differences" = "差分";
-"%1$d of %2$d" = "%1$d / %2$d";
-"No text changes" = "テキストの変更なし";
 "Previous Change" = "前の変更";
 "Next Change" = "次の変更";
-"Show Whole File" = "ファイル全体を表示";
-"Hide Unchanged" = "変更のない部分を折りたたむ";
 "$ unchanged lines" = "$ 行の変更なし";
 "None" = "なし";
 "Line endings differ. On disk: %1$@; draft: %2$@." = "改行コードが異なります。ディスク上：%1$@、下書き：%2$@。";
-"“%@” changed on disk" = "ディスク上の「%@」が変更されました";
-"“%@” changed again on disk" = "ディスク上の「%@」が再び変更されました";
-"Overwriting replaces the file on disk. Reloading discards your draft. Cancel keeps your changes unsaved." = "上書きするとディスク上のファイルが置き換わります。再読み込みすると下書きが破棄されます。キャンセルすると未保存の変更が保持されます。";
-"Overwrite Disk" = "ディスク上のファイルを上書き";
+"This document changed on disk again" = "この書類はディスク上で再び変更されました";
 "The comparison could not be displayed. Cancel to return to your unsaved draft." = "比較を表示できませんでした。キャンセルすると未保存の下書きに戻ります。";

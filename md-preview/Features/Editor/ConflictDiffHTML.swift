@@ -1,22 +1,15 @@
 import Foundation
 
+/// The text-only half of the save-conflict comparison. The sheet's title,
+/// column headings, change navigation and buttons are native controls in
+/// SaveConflictSheet; this page only shows the two sources, in the same type
+/// and highlight color as the editor and preview.
 nonisolated enum ConflictDiffHTML {
     static func render(disk: String, draft: String, javaScript: String) -> String {
         let labels = [
             "disk": NSLocalizedString("On Disk", comment: "Save conflict comparison heading"),
             "draft": NSLocalizedString("Your Draft", comment: "Save conflict comparison heading"),
-            "saved": NSLocalizedString("Saved file", comment: "Save conflict disk status"),
-            "unsaved": NSLocalizedString("Unsaved", comment: "Save conflict draft status"),
-            "differences": NSLocalizedString("Differences", comment: "Save conflict difference count label"),
-            "position": NSLocalizedString("%1$d of %2$d", comment: "Current difference and total; substituted in JavaScript"),
-            "noChanges": NSLocalizedString("No text changes", comment: "No normalized line differences"),
-            "previous": NSLocalizedString("Previous Change", comment: "Save conflict diff navigation"),
-            "next": NSLocalizedString("Next Change", comment: "Save conflict diff navigation"),
-            "showAll": NSLocalizedString("Show Whole File", comment: "Expand unchanged source in a comparison"),
-            "hideUnchanged": NSLocalizedString("Hide Unchanged", comment: "Collapse unchanged source in a comparison"),
             "unchanged": NSLocalizedString("$ unchanged lines", comment: "$ is replaced by CodeMirror with the number of collapsed lines"),
-            "none": NSLocalizedString("None", comment: "No line ending characters"),
-            "lineEndings": NSLocalizedString("Line endings differ. On disk: %1$@; draft: %2$@.", comment: "Line ending names; substituted in JavaScript"),
         ]
         let labelsJSON = labels.sorted { $0.key < $1.key }.map {
             "\(EditorHTML.jsStringLiteral($0.key)):\(EditorHTML.jsStringLiteral($0.value))"
@@ -25,71 +18,85 @@ nonisolated enum ConflictDiffHTML {
         <!doctype html><html><head><meta charset="utf-8">
         <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'">
         <style>
-        :root { color-scheme: light dark; --secondary: -apple-system-secondary-label;
-            --rule: -apple-system-separator; --chrome: -apple-system-control-background;
-            --focus: -apple-system-control-accent; --line: #fbf4e8; --word: #f5deb0; --edge: #ad7520; }
-        #comparison .cm-merge-a { --line: #fbefef; --word: #f3c5c5; --edge: #c75353; }
-        #comparison .cm-merge-b { --line: #eef7f1; --word: #bfe4c9; --edge: #33834f; }
+        /* Palette mirrors EditorHTML and MarkdownHTML.stylesheet: semantic
+           system colors, and the preview's ==highlight== color for changes. */
+        :root { color-scheme: light dark; --text: -apple-system-label;
+            --secondary: -apple-system-secondary-label; --grid: -apple-system-separator;
+            --code-bg: #f9f9f9; --highlight: rgba(255, 216, 77, 0.55);
+            --changed-line: rgba(255, 216, 77, 0.12); --changed-edge: #ffbf00; }
         @media (prefers-color-scheme: dark) {
-            :root { --line: #363023; --word: #765b30; --edge: #d9ac61; }
-            #comparison .cm-merge-a { --line: #342727; --word: #63383c; --edge: #dc858c; }
-            #comparison .cm-merge-b { --line: #22362b; --word: #315840; --edge: #72bf8c; }
+            :root { --code-bg: #262626; --changed-line: rgba(255, 216, 77, 0.08); }
         }
         @media (prefers-contrast: more) {
-            :root { --secondary: -apple-system-label; --rule: -apple-system-label; }
-            #comparison .cm-changedText { outline: 1px solid var(--edge); }
+            :root { --grid: -apple-system-label; }
+            #comparison .cm-changedText { outline: 1px solid var(--changed-edge); }
         }
         * { box-sizing: border-box; }
-        body { margin: 0; height: 100vh; display: flex; flex-direction: column;
-            font: 12px -apple-system, sans-serif; color: -apple-system-label;
-            background: -apple-system-text-background; border: 1px solid var(--rule);
-            border-radius: 8px; overflow: hidden; }
-        .toolbar { display: flex; align-items: center; gap: 8px; min-height: 38px;
-            padding: 6px 12px; background: var(--chrome); border-bottom: 1px solid var(--rule); }
-        #summary { margin-right: auto; font-weight: 600; }
-        #position { color: var(--secondary); font-size: 11px; font-variant-numeric: tabular-nums; }
-        header { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); }
-        header > div { display: flex; justify-content: space-between; align-items: center;
-            gap: 12px; padding: 8px 12px; }
-        header > div + div { border-left: 1px solid var(--rule); }
-        header small { color: var(--secondary); font-size: 10px; }
-        #comparison { flex: 1; min-height: 0; }
-        .cm-mergeView { height: 100%; }
+        html, body { margin: 0; height: 100%; overflow: hidden; }
+        body { font-family: \(MarkdownHTML.bodyFontFamily); color: var(--text);
+            background: -apple-system-text-background; border: 1px solid var(--grid);
+            -webkit-font-smoothing: antialiased; }
+        #comparison, .cm-mergeView { height: 100%; }
+        /* Keep the divider between the panes full height for short files. */
+        #comparison .cm-mergeViewEditors { min-height: 100%; }
         .cm-mergeViewEditor { min-width: 0; }
-        .cm-mergeViewEditor + .cm-mergeViewEditor { border-left: 1px solid var(--rule); }
-        #comparison .cm-gutters { border: 0; }
-        #comparison .cm-lineNumbers .cm-gutterElement { min-width: 26px; padding-right: 8px; }
-        #comparison .cm-line { padding: 0 10px 0 5px; }
-        #comparison .cm-changedLine { background: var(--line); }
-        #comparison .cm-changedText { background: var(--word); border-radius: 2px;
+        .cm-mergeViewEditor + .cm-mergeViewEditor { border-left: 1px solid var(--grid); }
+        #comparison .cm-editor { font-size: \(MarkdownHTML.bodyFontSize)px; }
+        #comparison .cm-scroller { font-family: inherit; line-height: \(MarkdownHTML.bodyLineHeight); }
+        #comparison .cm-gutters { border: 0; background: transparent; }
+        #comparison .cm-line { padding: 0 14px 0 10px; }
+        #comparison .cm-changedLine { background: var(--changed-line); }
+        #comparison .cm-changedText { background: var(--highlight); color: inherit;
             box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-        #comparison .cm-changedLineGutter { background: var(--edge); }
-        #comparison .cm-collapsedLines { background: var(--chrome); color: var(--secondary); font: 11px/27px -apple-system, sans-serif; }
-        #comparison .cm-editor.cm-focused { outline: 2px solid var(--focus); outline-offset: -2px; }
+        #comparison .cm-changedLineGutter { background: var(--changed-edge); }
+        #comparison .cm-collapsedLines { padding: 4px 0; text-align: center; color: var(--secondary);
+            background: var(--code-bg); font: 12px/18px \(MarkdownHTML.bodyFontFamily); }
+        #comparison .cm-collapsedLines::before, #comparison .cm-collapsedLines::after { content: none; }
+        /* WebKit's auto outline is the system focus ring. */
+        #comparison .cm-editor.cm-focused { outline: -webkit-focus-ring-color auto 4px; outline-offset: -4px; }
         #comparison .cm-selectionBackground { background: color-mix(in srgb, Highlight 30%, transparent); }
-        button { font: 11px -apple-system, sans-serif; color: inherit; background: -apple-system-text-background;
-            border: 1px solid var(--rule); border-radius: 5px; min-height: 24px; padding: 2px 7px; }
-        button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-        button:active { background: var(--chrome); }
-        button:disabled { opacity: .45; }
-        .arrow { font-size: 16px; line-height: 18px; }
-        #line-endings { margin: 0; padding: 8px 12px; background: var(--line); border-bottom: 1px solid var(--rule); }
         </style></head><body>
-        <div class="toolbar">
-            <strong id="summary"></strong><button id="context" aria-pressed="false"></button>
-            <output id="position" aria-live="polite" aria-atomic="true"></output>
-            <button id="previous" class="arrow">↑</button><button id="next" class="arrow">↓</button>
-        </div>
-        <p id="line-endings" role="status" hidden></p>
-        <header>
-            <div><strong id="disk-title"></strong><small id="disk-status"></small></div>
-            <div><strong id="draft-title"></strong><small id="draft-status"></small></div>
-        </header>
         <div id="comparison"></div>
         <script>\(javaScript)</script>
         <script>MDConflictDiff(\(EditorHTML.jsStringLiteral(disk)),
             \(EditorHTML.jsStringLiteral(draft)), {\(labelsJSON)});</script>
         </body></html>
         """
+    }
+
+    /// Explains a conflict CodeMirror cannot show, because it compares
+    /// normalized lines. Nil when both sources use the same line endings.
+    static func lineEndingNote(disk: String, draft: String) -> String? {
+        let normalized = { (source: String) in
+            source.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
+        }
+        let endings = lineEndings(in: disk), draftEndings = lineEndings(in: draft)
+        guard endings != draftEndings || (disk != draft && normalized(disk) == normalized(draft)) else {
+            return nil
+        }
+        return String(format: NSLocalizedString("Line endings differ. On disk: %1$@; draft: %2$@.",
+                                                comment: "Line ending names"),
+                      endings, draftEndings)
+    }
+
+    private static func lineEndings(in source: String) -> String {
+        var names = Set<String>()
+        for scalar in source.unicodeScalars.indices {
+            switch source.unicodeScalars[scalar] {
+            case "\r":
+                let next = source.unicodeScalars.index(after: scalar)
+                names.insert(next < source.unicodeScalars.endIndex && source.unicodeScalars[next] == "\n" ? "CRLF" : "CR")
+            case "\n":
+                if scalar == source.unicodeScalars.startIndex
+                    || source.unicodeScalars[source.unicodeScalars.index(before: scalar)] != "\r" {
+                    names.insert("LF")
+                }
+            default:
+                continue
+            }
+        }
+        return names.isEmpty
+            ? NSLocalizedString("None", comment: "No line ending characters")
+            : names.sorted().joined(separator: " / ")
     }
 }

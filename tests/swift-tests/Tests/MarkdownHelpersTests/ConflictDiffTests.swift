@@ -35,21 +35,23 @@ final class ConflictDiffTests: XCTestCase {
         let page = try await comparison(disk: disk, draft: draft)
         defer { page.close() }
         let result = try await page.webView.callAsyncJavaScript("""
-            document.getElementById('next').click();
+            const initial = window.__conflictPosition;
+            const position = MDConflictNavigate(1);
             for (let i = 0; i < 5; i++) window.__layoutTestFrame();
             const view = window.__conflictDiff;
             const target = view.a.coordsAtPos(view.a.state.doc.line(181).from);
             const bounds = view.dom.getBoundingClientRect();
             return {targetVisible: target.top >= bounds.top && target.top < bounds.bottom,
                 collapsed: document.querySelectorAll('.cm-collapsedLines').length,
-                position: document.getElementById('position').textContent,
+                initial, position,
                 changes: view.chunks.length, disk: view.a.state.doc.toString(), draft: view.b.state.doc.toString()};
             """, arguments: [:], in: nil, contentWorld: .page)
         let values = try XCTUnwrap(result as? [String: Any])
         XCTAssertEqual(values["changes"] as? Int, 2)
         XCTAssertEqual(values["targetVisible"] as? Bool, true)
         XCTAssertGreaterThan(values["collapsed"] as? Int ?? 0, 0)
-        XCTAssertEqual(values["position"] as? String, "2 of 2")
+        XCTAssertEqual(values["initial"] as? [Int], [1, 2])
+        XCTAssertEqual(values["position"] as? [Int], [2, 2])
         XCTAssertEqual(values["disk"] as? String, disk)
         XCTAssertEqual(values["draft"] as? String, draft)
     }
@@ -67,7 +69,7 @@ final class ConflictDiffTests: XCTestCase {
         XCTAssertEqual(result as? Bool, true)
     }
 
-    func testWholeFileToggleAndKeyboardCopyRetainHiddenSourceAndMixedLineEndings() async throws {
+    func testCollapsedSourceExpandsOnClickAndKeyboardCopyRetainsMixedLineEndings() async throws {
         let disk = (0..<100).map { "Line \($0)" + ($0.isMultiple(of: 2) ? "\r\n" : "\n") }.joined()
         let page = try await comparison(disk: disk, draft: disk.replacingOccurrences(of: "Line 50", with: "Edited line 50"))
         defer { page.close() }
@@ -86,13 +88,11 @@ final class ConflictDiffTests: XCTestCase {
             const unchanged = view.state.doc.toString();
             key('ArrowLeft'); key('ArrowRight', {shiftKey: true});
             const selectedCharacter = view.state.sliceDoc(view.state.selection.main.from, view.state.selection.main.to);
-            document.getElementById('context').click();
+            const collapsed = document.querySelectorAll('.cm-collapsedLines');
+            collapsed[0].click();
             for (let i = 0; i < 5; i++) window.__layoutTestFrame();
-            const expanded = !document.querySelector('.cm-collapsedLines');
-            document.getElementById('context').click();
-            for (let i = 0; i < 5; i++) window.__layoutTestFrame();
-            return {initialCollapsed, selectedAll, copied, unchanged, selectedCharacter, expanded,
-                collapsedAgain: !!document.querySelector('.cm-collapsedLines')};
+            const expandedOne = document.querySelectorAll('.cm-collapsedLines').length < collapsed.length;
+            return {initialCollapsed, selectedAll, copied, unchanged, selectedCharacter, expandedOne};
             """, arguments: [:], in: nil, contentWorld: .page)
         let values = try XCTUnwrap(result as? [String: Any])
         XCTAssertGreaterThan(values["initialCollapsed"] as? Int ?? 0, 0)
@@ -100,42 +100,45 @@ final class ConflictDiffTests: XCTestCase {
         XCTAssertEqual(values["copied"] as? String, disk)
         XCTAssertEqual(values["unchanged"] as? String, disk.replacingOccurrences(of: "\r\n", with: "\n"))
         XCTAssertEqual(values["selectedCharacter"] as? String, "L")
-        XCTAssertEqual(values["expanded"] as? Bool, true)
-        XCTAssertEqual(values["collapsedAgain"] as? Bool, true)
+        XCTAssertEqual(values["expandedOne"] as? Bool, true)
     }
 
     func testLineEndingOnlyConflictIsExplained() async throws {
         let page = try await comparison(disk: "a\r\nb\r\n", draft: "a\nb\n")
         defer { page.close() }
         let result = try await page.webView.callAsyncJavaScript("""
-            return {changes: window.__conflictDiff.chunks.length,
-                notice: document.getElementById('line-endings').textContent,
-                visible: !document.getElementById('line-endings').hidden,
-                nextDisabled: document.getElementById('next').disabled};
+            return {changes: window.__conflictDiff.chunks.length, position: window.__conflictPosition};
             """, arguments: [:], in: nil, contentWorld: .page)
         let values = try XCTUnwrap(result as? [String: Any])
         XCTAssertEqual(values["changes"] as? Int, 0)
-        XCTAssertEqual(values["visible"] as? Bool, true)
-        XCTAssertEqual(values["nextDisabled"] as? Bool, true)
-        XCTAssertEqual(values["notice"] as? String, "Line endings differ. On disk: CRLF; draft: LF.")
+        XCTAssertEqual(values["position"] as? [Int], [0, 0])
+        XCTAssertEqual(ConflictDiffHTML.lineEndingNote(disk: "a\r\nb\r\n", draft: "a\nb\n"),
+                       "Line endings differ. On disk: CRLF; draft: LF.")
+        XCTAssertEqual(ConflictDiffHTML.lineEndingNote(disk: "a\r\nb\n", draft: "a\nb\r\n"),
+                       "Line endings differ. On disk: CRLF / LF; draft: CRLF / LF.")
+        XCTAssertEqual(ConflictDiffHTML.lineEndingNote(disk: "a", draft: "b\r"),
+                       "Line endings differ. On disk: None; draft: CR.")
+        XCTAssertNil(ConflictDiffHTML.lineEndingNote(disk: "a\nb\n", draft: "a\nc\n"))
     }
 
-    func testComparisonPaletteAndNavigationLabels() async throws {
+    func testComparisonUsesTheDocumentTypeAndHighlightColor() async throws {
         let page = try await comparison(disk: "Disk value\n", draft: "Draft value\n")
         defer { page.close() }
         let result = try await page.webView.callAsyncJavaScript("""
-            const gutter = document.querySelector('.cm-gutters');
             const word = document.querySelector('.cm-changedText');
-            return {gutterColor: getComputedStyle(gutter).color, bodyColor: getComputedStyle(document.body).color,
+            const scroller = document.querySelector('.cm-scroller');
+            return {highlight: getComputedStyle(word).backgroundColor,
                 underline: getComputedStyle(word).backgroundImage,
-                nextLabel: document.getElementById('next').getAttribute('aria-label'),
-                positionLive: document.getElementById('position').getAttribute('aria-live')};
+                font: getComputedStyle(scroller).fontFamily,
+                lineNumbers: document.querySelectorAll('.cm-lineNumbers').length,
+                controls: document.querySelectorAll('button, output').length};
             """, arguments: [:], in: nil, contentWorld: .page)
         let values = try XCTUnwrap(result as? [String: Any])
-        XCTAssertNotEqual(values["gutterColor"] as? String, values["bodyColor"] as? String)
+        XCTAssertEqual(values["highlight"] as? String, "rgba(255, 216, 77, 0.55)")
         XCTAssertEqual(values["underline"] as? String, "none")
-        XCTAssertEqual(values["nextLabel"] as? String, "Next Change")
-        XCTAssertEqual(values["positionLive"] as? String, "polite")
+        XCTAssertFalse((values["font"] as? String ?? "monospace").contains("mono"))
+        XCTAssertEqual(values["lineNumbers"] as? Int, 0)
+        XCTAssertEqual(values["controls"] as? Int, 0)
     }
 
     private func comparison(disk: String, draft: String) async throws -> WebViewLayoutHarness {

@@ -393,17 +393,7 @@
 /* Save conflict comparison controls */
 "On Disk" = "On Disk";
 "Your Draft" = "Your Draft";
-"Saved file" = "Saved file";
-"Unsaved" = "Unsaved";
-"Differences" = "Differences";
-"%1$d of %2$d" = "%1$d of %2$d";
-"No text changes" = "No text changes";
-"Show Whole File" = "Show Whole File";
-"Hide Unchanged" = "Hide Unchanged";
 "$ unchanged lines" = "$ unchanged lines";
 "None" = "None";
 "Line endings differ. On disk: %1$@; draft: %2$@." = "Line endings differ. On disk: %1$@; draft: %2$@.";
-"“%@” changed on disk" = "“%@” changed on disk";
-"“%@” changed again on disk" = "“%@” changed again on disk";
-"Overwriting replaces the file on disk. Reloading discards your draft. Cancel keeps your changes unsaved." = "Overwriting replaces the file on disk. Reloading discards your draft. Cancel keeps your changes unsaved.";
-"Overwrite Disk" = "Overwrite Disk";
+"This document changed on disk again" = "This document changed on disk again";
